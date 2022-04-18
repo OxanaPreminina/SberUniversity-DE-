@@ -1,18 +1,31 @@
+''' 1. Разгрузка летного пространства
+Необходимо найти аэропорты вылета, из которых рейсы летают во Внуково (VKO), но не в Шереметьево (SVO).
+То есть был запланирован рейс из данного аэропорта во Внуково, но ни разу не был запланирован рейс в Шереметьево.
+
+Формат вывода:
+departure_airport
+
+Все значения должны быть уникальны.
+'''
+
+
 SELECT name1.departure_airport
-FROM 
-(
-	SELECT departure_airport, arrival_airport
+FROM (
+	SELECT 
+		departure_airport, 
+		arrival_airport
 	FROM flights
 	WHERE arrival_airport = 'VKO'
 	GROUP BY departure_airport, arrival_airport
-) as name1
-left JOIN
-(
-	SELECT departure_airport, arrival_airport
+	) as name1
+left JOIN (
+	SELECT 
+		departure_airport, 
+		arrival_airport
 	FROM flights
 	WHERE arrival_airport = 'SVO'
 	GROUP BY departure_airport, arrival_airport
-) as name2
+	) as name2
 ON name1.departure_airport = name2.departure_airport
 where name2.arrival_airport IS null
 ORDER BY 1
