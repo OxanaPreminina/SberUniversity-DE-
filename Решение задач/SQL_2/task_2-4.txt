@@ -1,6 +1,22 @@
+'''
+4. Загруженные рейсы
+Найти все пары аэропортов, между которыми было больше одного рейса, которые должны были вылететь 24 августа 2017 года.
+
+Примечание:
+Пары аэропортов (A, B) и (B, A) считать разными. Статус рейса учитывать не нужно.
+
+Формат вывода:
+departure_airport, arrival_airport, amount
+
+amount - количество рейсов из departure_airport в arrival_airport за этот день.
+Выводить строки по убыванию amount.
+В случае равенства amount сортировать по возрастанию departure_airport, а затем по возрастанию arrival_airport.
+'''
+
+
 SELECT t1.departure_airport  as  departure_airport,
        t1.arrival_airport as arrival_airport,
-	   (count(t1.arrival_airport) / 2) as amount	   
+	(count(t1.arrival_airport) / 2) as amount	   
 FROM (
 	SELECT *
 	FROM flights
@@ -13,7 +29,7 @@ LEFT JOIN (
 	WHERE scheduled_departure BETWEEN '2017-08-24 00:00:00' and '2017-08-24 23:59:59'
 	GROUP BY departure_airport, arrival_airport, scheduled_departure, flight_id
     ) as t2
-ON t1.departure_airport = t2.departure_airport and t1.arrival_airport = t2.arrival_airport 
-group by t1.departure_airport, t1.arrival_airport
+	ON t1.departure_airport = t2.departure_airport and t1.arrival_airport = t2.arrival_airport 
+GROUP BY t1.departure_airport, t1.arrival_airport
 HAVING count(t1.arrival_airport) > 1
 ORDER BY amount DESC, departure_airport, arrival_airport
