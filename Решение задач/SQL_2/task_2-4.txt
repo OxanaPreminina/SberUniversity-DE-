@@ -1,0 +1,19 @@
+SELECT t1.departure_airport  as  departure_airport,
+       t1.arrival_airport as arrival_airport,
+	   (count(t1.arrival_airport) / 2) as amount	   
+FROM (
+	SELECT *
+	FROM flights
+	WHERE scheduled_departure BETWEEN '2017-08-24 00:00:00' and '2017-08-24 23:59:59'
+	GROUP BY departure_airport, arrival_airport, scheduled_departure, flight_id
+    ) as t1
+LEFT JOIN (
+	SELECT *
+	FROM flights
+	WHERE scheduled_departure BETWEEN '2017-08-24 00:00:00' and '2017-08-24 23:59:59'
+	GROUP BY departure_airport, arrival_airport, scheduled_departure, flight_id
+    ) as t2
+ON t1.departure_airport = t2.departure_airport and t1.arrival_airport = t2.arrival_airport 
+group by t1.departure_airport, t1.arrival_airport
+HAVING count(t1.arrival_airport) > 1
+ORDER BY amount DESC, departure_airport, arrival_airport

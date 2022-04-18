@@ -1,0 +1,35 @@
+select
+t1.flight_id_1,
+t2.flight_id_2,
+t1.total_1 + t2.total_2 AS total_amount
+from(
+	SELECT
+	min(t1.amount) AS total_1,
+	t2.flight_id as flight_id_1,
+	t2.scheduled_departure,
+	t2.scheduled_arrival,
+	t2.departure_airport,
+	t2.arrival_airport
+	FROM ticket_flights t1
+	JOIN flights t2
+	ON t1.flight_id = t2.flight_id
+	WHERE t2.departure_airport = 'SVO' AND t2.arrival_airport != 'HMA'
+	group by t2.flight_id
+	) t1
+INNER JOIN (	
+	SELECT
+	min(t1.amount) AS total_2,
+	t2.flight_id AS flight_id_2,
+	t2.scheduled_departure,
+	t2.scheduled_arrival, 
+	t2.departure_airport
+	FROM ticket_flights t1
+	JOIN flights t2
+	ON t1.flight_id = t2.flight_id
+	WHERE t2.departure_airport != 'SVO' AND t2.arrival_airport = 'HMA'
+	group by t2.flight_id
+		) t2
+ON t1.scheduled_arrival < t2.scheduled_departure and t1.arrival_airport = t2.departure_airport
+order by total_amount
+
+

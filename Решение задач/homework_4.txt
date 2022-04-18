@@ -1,0 +1,13 @@
+
+select  
+    regexp_substr(value, '\d+') as id, 
+    substr(regexp_substr(value, 'h1>[А-Яа-я \.]+'), 4) as category, 
+    replace(substr(regexp_substr(value, 'le">[a-zA-Zа-яёА-ЯЁ0-9 \.:-]+'), 5), ' :', ':') as title,
+    replace(trim(substr(regexp_substr(value, 'or">[A-Za-zА-Яа-я \.:]+'), 5)), ' :', ':') as author,
+    substr(regexp_substr(value, 'ce">\d+'), 5)||'₽' as price
+from data;
+
+
+
+
+

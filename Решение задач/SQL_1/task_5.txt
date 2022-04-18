@@ -1,0 +1,13 @@
+SELECT
+	SUM(name.amount) AS lost_profit
+FROM 
+(
+SELECT * 
+FROM ticket_flights t1
+INNER JOIN flights t2
+ON t1.flight_id = t2.flight_id
+WHERE t2.status = 'Cancelled'
+	AND t2.scheduled_departure BETWEEN '2017-08-17 00:00:00' AND '2017-08-23 00:00:00'
+)
+AS name
+

@@ -1,0 +1,9 @@
+SELECT
+	flight_id, 
+	ROUND(AVG(amount), 0) AS avg_amount
+FROM ticket_flights
+GROUP BY flight_id
+HAVING AVG(amount) > 3300 AND AVG(amount) < 5000
+ORDER BY flight_id;
+
+

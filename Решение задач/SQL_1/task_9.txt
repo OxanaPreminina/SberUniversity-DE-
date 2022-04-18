@@ -1,0 +1,14 @@
+SELECT cast(strftime('%m', scheduled_departure) as integer) AS month,
+(COUNT(scheduled_departure)) AS cancelled_flights_number
+FROM flights
+group by month, status
+HAVING status LIKE 'Cancelled'
+ORDER BY month
+
+
+
+
+
+
+
+

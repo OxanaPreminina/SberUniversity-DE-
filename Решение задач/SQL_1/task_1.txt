@@ -1,0 +1,4 @@
+select model, range
+from aircrafts 
+where range BETWEEN 1300 AND 5800
+ORDER BY range ASC;

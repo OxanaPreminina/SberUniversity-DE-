@@ -1,0 +1,8 @@
+SELECT
+	departure_airport AS airport_code, 
+	COUNT('Cancelled') AS cancelled_flights_number 
+FROM flights
+WHERE status = 'Cancelled'
+GROUP BY departure_airport
+ORDER BY cancelled_flights_number DESC
+LIMIT 3;

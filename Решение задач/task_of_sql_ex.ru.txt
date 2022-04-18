@@ -1,0 +1,362 @@
+1. Найдите модели принтеров, имеющих самую высокую цену. Вывести: model, price
+SELECT model, price
+FROM Printer
+WHERE price IN(
+      SELECT MAX(price)
+      FROM Printer
+      )
+
+2. Найдите среднюю скорость ПК.
+SELECT AVG(speed)
+FROM PC
+
+3. Найдите среднюю скорость ПК-блокнотов, цена которых превышает 1000 дол.
+SELECT AVG(speed)
+FROM Laptop
+WHERE price > 1000
+
+4. Найдите среднюю скорость ПК, выпущенных производителем A.
+SELECT AVG(speed)
+FROM PC t1
+     INNER JOIN Product t2
+     ON t1.model = t2.model
+WHERE maker = 'A'
+
+5. Найдите класс, имя и страну для кораблей из таблицы Ships, имеющих не менее 10 орудий.
+SELECT t1.class, t1.name, t2.country
+FROM Ships t1
+     INNER JOIN Classes t2 ON t1.class = t2.class
+     and t2.numGuns >= 10
+
+6. Найдите размеры жестких дисков, совпадающих у двух и более PC. Вывести: HD
+SELECT HD
+FROM PC
+GROUP BY HD
+HAVING COUNT(model) >= 2
+
+7. Найдите модели ПК-блокнотов, скорость которых меньше скорости каждого из ПК.
+Вывести: type, model, speed
+SELECT DISTINCT t2.type, t1.model, t1.speed
+FROM Laptop t1
+     INNER JOIN Product t2 ON t1.model = t2.model
+WHERE t1.speed < (
+      SELECT MIN(speed)
+      FROM PC)
+
+
+8. Найдите производителей самых дешевых цветных принтеров. Вывести: maker, price
+select distinct maker, 
+       price
+from product t1
+inner join (
+        select t1.price,
+               t1.model
+        from printer t1
+        inner join (
+               select min(price) as min_price
+               from printer
+               where color = 'y'
+               ) t2
+        on t1.price = t2.min_price
+        and color = 'y'
+   ) t2
+on t1.model = t2.model
+
+9. Для каждого производителя, имеющего модели в таблице Laptop, найдите средний размер экрана выпускаемых им ПК-блокнотов. Вывести: maker, средний размер экрана.
+select maker,
+       avg(screen) as avg_screen
+from 
+      (select maker,
+              model
+       from product 
+       where model IN (
+            select model
+            from laptop)
+       ) t1
+inner join laptop t2
+on t1.model = t2.model
+group by maker
+
+
+10. Найдите максимальную цену ПК, выпускаемых каждым производителем, у которого есть модели в таблице PC.
+Вывести: maker, максимальная цена.
+select maker,
+       max(price) as max_price
+from product t1
+inner join pc t2
+on t1.model = t2.model
+and maker in (
+         select maker
+         from product t1 
+         inner join pc t2
+         on t1.model = t2.model
+         )
+group by maker
+
+11. Для каждого значения скорости ПК, превышающего 600 МГц, определите среднюю цену ПК с такой же скоростью. Вывести: speed, средняя цена.
+Select speed,
+       round(avg(price), 2) as avg_price
+from pc
+where speed > 600
+group by speed
+
+
+12. Найдите производителей, которые производили бы как ПК со скоростью не менее 750 МГц, так и ПК-блокноты со скоростью не менее 750 МГц. Вывести: Maker
+select maker
+from product
+where model in(
+      select model
+      from laptop
+      where speed >= 750)
+intersect
+select maker
+from product
+where model in(
+      Select model
+      from pc
+      where speed >= 750)
+
+13. Найдите производителей принтеров, которые производят ПК с наименьшим объемом RAM и с самым быстрым процессором среди всех ПК, имеющих наименьший объем RAM. Вывести: Maker
+Select maker
+from product
+where model in (
+	select model
+	from pc
+	where speed = (
+        	select max(speed)
+        	from pc
+		where ram = (
+        		select min(ram)
+      			from pc)
+                )
+	and ram = (
+		select min(ram)
+      		from pc)
+	)
+intersect
+select maker
+from product
+where type = 'Printer'
+
+
+14. Найдите среднюю цену ПК и ПК-блокнотов, выпущенных производителем A (латинская буква). Вывести: одна общая средняя цена.
+select avg(price) as avg_price
+from (
+        Select price
+	from pc 
+	where model in (
+                select model
+		from product
+		where maker = 'A' and type = 'PC')
+	union all
+	Select price
+	from Laptop 
+	where model in (
+                select model
+		from product
+		where maker = 'A' and type = 'Laptop')
+     ) t
+
+15. Найдите средний размер диска ПК каждого из тех производителей, которые выпускают и принтеры. Вывести: maker, средний размер HD.
+select maker, 
+	avg(hd) as avg_hd
+from pc t1
+inner join product t2
+on t1.model = t2.model
+and maker in (
+	Select maker
+	from product
+	where type = 'Printer')
+group by maker
+
+
+16. Используя таблицу Product, определить количество производителей, выпускающих по одной модели.
+select count(maker)
+from (
+Select maker,
+	count(model) as cnt
+from product
+group by maker
+having count(model) = 1
+) t
+
+
+17. В предположении, что приход и расход денег на каждом пункте приема фиксируется не чаще одного раза в день [т.е. первичный ключ (пункт, дата)], написать запрос с выходными данными (пункт, дата, приход, расход). Использовать таблицы Income_o и Outcome_o.
+SELECT t1.point, t1.date, t1.inc, t2.out
+FROM Income_o t1
+     LEFT JOIN Outcome_o t2 
+     ON t1.date = t2.date AND t1.point = t2.point
+UNION
+SELECT t1.point, t1.date, t2.inc, t1.out
+FROM Outcome_o t1
+     LEFT JOIN Income_o t2 
+     ON t1.date = t2.date AND t1.point = t2.point
+
+18. В предположении, что приход и расход денег на каждом пункте приема фиксируется произвольное число раз (первичным ключом в таблицах является столбец code), требуется получить таблицу, в которой каждому пункту за каждую дату выполнения операций будет соответствовать одна строка.
+Вывод: point, date, суммарный расход пункта за день (out), суммарный приход пункта за день (inc). Отсутствующие значения считать неопределенными (NULL).
+select t1.point, t1.date, sum_out, sum_inc
+from (
+	select point, date, sum(out) as sum_out
+	from outcome
+	group by point, date
+	) t1
+left join (
+	select point, date, sum(inc) as sum_inc
+	from income
+	group by point, date
+	)t2
+on t1.point = t2.point and t1.date = t2.date
+union
+select t1.point, t1.date, sum_out, sum_inc
+from (
+	select point, date, sum(inc) as sum_inc
+	from income
+	group by point, date
+	) t1
+left join (
+	select point, date, sum(out) as sum_out
+	from outcome
+	group by point, date
+	)t2
+on t1.point = t2.point and t1.date = t2.date
+
+
+19. Для классов кораблей, калибр орудий которых не менее 16 дюймов, укажите класс и страну.
+Select class, country
+from  classes
+where bore >= 16
+
+
+20. Укажите корабли, потопленные в сражениях в Северной Атлантике (North Atlantic). Вывод: ship
+select ship
+from outcomes
+where result = 'sunk' and battle = 'North Atlantic'
+
+
+21. По Вашингтонскому международному договору от начала 1922 г. запрещалось строить линейные корабли водоизмещением более 35 тыс.тонн. Укажите корабли, нарушившие этот договор (учитывать только корабли c известным годом спуска на воду). Вывести названия кораблей.
+SELECT 
+	t1.name
+FROM Ships t1
+inner join classes t2
+on t1.class = t2.class
+and t2.type = 'bb' 
+AND t2.displacement > 35000
+and t1.launched > 1921
+
+
+22. Перечислите названия головных кораблей, имеющихся в базе данных (учесть корабли в Outcomes).
+Select name
+from ships
+where name = class
+union
+select ship
+from outcomes
+where ship in (
+	select class 
+	from classes)
+
+
+23. Найдите страны, имевшие когда-либо классы обычных боевых кораблей ('bb') и имевшие когда-либо классы крейсеров ('bc').
+Select country
+from classes
+where type = 'bb'
+intersect
+Select country
+from classes
+where type = 'bc'
+
+
+24. Найдите корабли, `сохранившиеся для будущих сражений`; т.е. выведенные из строя в одной битве (damaged), они участвовали в другой, произошедшей позже.
+select distinct t1.ship
+from 
+    (select t1.ship, t2.date
+     from outcomes t1
+         inner join battles t2
+         on t1.battle = t2.name
+     ) t1
+     inner join (
+     select t1.ship, t2.date
+     from outcomes t1
+         inner join battles t2
+         on t1.battle = t2.name
+     where result = 'damaged'
+     ) t2
+    on t1.ship = t2.ship
+    and t1.date > t2.date
+
+
+25. Найти производителей, которые выпускают более одной модели, при этом все выпускаемые производителем модели являются продуктами одного типа. Вывести: maker, type
+select distinct maker,
+       type
+from product
+where maker in (
+    select maker
+    from product
+    where maker in (
+        select maker
+        from product
+        group by maker
+        having count(distinct type) = 1
+        )
+    group by maker
+    having count(model) > 1
+    )
+
+
+26. Для каждого производителя, у которого присутствуют модели хотя бы в одной из таблиц PC, Laptop или Printer,
+определить максимальную цену на его продукцию.
+Вывод: имя производителя, если среди цен на продукцию данного производителя присутствует NULL, то выводить для этого производителя NULL, иначе максимальную цену.
+with D as
+	(select model, price from PC
+	union
+	select model, price from Laptop
+	union
+	select model, price from Printer)
+
+Select distinct P.maker,
+CASE WHEN MAX(CASE WHEN D.price IS NULL THEN 1 ELSE 0 END) = 0 THEN
+MAX(D.price) END max_price
+from Product P
+right join D on P.model=D.model
+group by P.maker
+
+
+27. Найдите названия кораблей, потопленных в сражениях, и название сражения, в котором они были потоплены.
+Select ship,
+       battle
+from outcomes
+where result = 'sunk'
+
+
+28. Найдите названия всех кораблей в базе данных, начинающихся с буквы R.
+Select name
+from ships
+where name like 'R%'
+union
+select ship
+from outcomes
+where ship like 'R%'
+
+
+29. Найдите названия всех кораблей в базе данных, состоящие из трех и более слов (например, King George V).
+Считать, что слова в названиях разделяются единичными пробелами, и нет концевых пробелов.
+Select name
+from ships
+where name like '% % %'
+union
+select ship
+from outcomes
+where ship like '% % %'
+
+
+
+
+
+
+
+
+
+
+
+
+

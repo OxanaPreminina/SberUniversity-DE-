@@ -1,0 +1,12 @@
+SELECT
+	t2.departure_airport AS airport_code, 
+	COUNT(t1.ticket_no) AS passengers
+FROM ticket_flights t1
+INNER JOIN flights t2
+ON t1.flight_id = t2.flight_id
+WHERE departure_airport IN('SVO', 'VKO', 'DME')
+GROUP BY departure_airport
+ORDER BY passengers DESC;
+
+
+

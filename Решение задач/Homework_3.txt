@@ -1,0 +1,112 @@
+-- Задача 1. Найдите общую сумму, потраченную на полеты каждым пассажиром. Выведите имя и стоимость всех полетов.
+
+select t1.name,
+       sum(price) as total_cost
+from passengers t1
+    inner join fly_mapping t2 on t1.id = t2.passenger_id
+    inner join flying t3 on t3.id = t2.flying_id
+group by t1.name;
+
+
+-- Задача 2. Найдите среднее количество времени, потраченное в воздухе каждой возрастной группой. Выведите возрастную группу и кол-во времени в минутах (округленное до двух знаков после запятой).
+
+select t1.age_group,
+       round(avg(flight_time), 2) as avg_flight_time
+from passengers t1
+    inner join fly_mapping t2 on t1.id = t2.passenger_id
+    inner join flying t3 on t3.id = t2.flying_id
+group by t1.age_group;
+
+
+-- Задача 3. Определите пассажиров с максимальным количеством полетов. Выведите имя и количество полетов
+
+select t1.name,
+    count(t2.id) as cnt_flying
+from passengers t1
+    inner join fly_mapping t2 on t1.id = t2.passenger_id
+group by t1.name 
+having count(t2.id) = (
+        select 
+            max(cnt_flying) as max_cnt_flying
+        from (
+            select t1.name,
+               count(t2.id) as cnt_flying
+            from passengers t1
+                inner join fly_mapping t2 on t1.id = t2.passenger_id
+            group by t1.name
+        ) table_cnt
+    );
+
+
+-- Задача 4. Определите пассажиров, у которых количество полетов больше среднего.
+
+select t1.name,
+    count(t2.id) as cnt_flying
+from passengers t1
+    inner join fly_mapping t2 on t1.id = t2.passenger_id
+group by t1.name 
+having count(t2.id) > (
+        select 
+            avg(cnt_flying) as avg_cnt_flying
+        from (
+            select t1.name,
+               count(t2.id) as cnt_flying
+            from passengers t1
+                inner join fly_mapping t2 on t1.id = t2.passenger_id
+            group by t1.name
+        ) table_cnt
+    );
+
+
+-- Задача 5. Определите самые популярные направления полетов. Направления с максимальным количеством прилетов.
+
+select
+    t1.point_to,
+    count(t1.id)
+from flying t1
+    inner join fly_mapping t2 on t1.id = t2.flying_id
+group by point_to
+having count(t1.id) = (
+        select
+            max(cnt_flying) as max_cnt_flying
+        from (
+            select 
+                count(t1.id) as cnt_flying
+            from flying t1
+                inner join fly_mapping t2 on t1.id = t2.flying_id
+            group by point_to
+        )
+    );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
