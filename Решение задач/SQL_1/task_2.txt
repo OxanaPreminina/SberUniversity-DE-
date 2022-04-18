@@ -1,9 +1,17 @@
+/*
+2. Поиск самолетов[2]
+Необходимо вывести все модели самолетов, на которых был совершен хотя бы один рейс, с указанием количества рейсов, выполненных на каждой модели. Рейс считается выполненным, если самолет прибыл в пункт назначения. Элементы выборки должны быть упорядочены по убыванию числа рейсов.
+
+Формат вывода:
+model, flights_num */
+
+
 SELECT
 	t1.model, 
 	COUNT('Arrived') AS flights_num
 FROM aircrafts t1
 INNER JOIN flights t2
-ON t1.aircraft_code = t2.aircraft_code
+	ON t1.aircraft_code = t2.aircraft_code
 GROUP BY t1.model, t2.status
 HAVING t2.status = 'Arrived'
 ORDER BY flights_num DESC;
