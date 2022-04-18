@@ -1,9 +1,18 @@
+/*
+10. Отмена рейсов[3]
+Исследуется распределение отмененных рейсов по городам. Необходимо вывести пять городов, рейсы из которых отменяли чаще всего, а также количество отмен. Вхождения в выборку должны быть упорядочены по убыванию числа отмененных рейсов.
+
+Формат вывода:
+city, cancelled_flights_number */
+
+
+
 SELECT
 	t1.city, 
 	COUNT('Cancelled') AS cancelled_flights_number 
 FROM airports t1
 INNER JOIN flights t2
-ON t1.airport_code = t2.departure_airport
+	ON t1.airport_code = t2.departure_airport
 WHERE status = 'Cancelled'
 GROUP BY t1.city
 ORDER BY cancelled_flights_number DESC
