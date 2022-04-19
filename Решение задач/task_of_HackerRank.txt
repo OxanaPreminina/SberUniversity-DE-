@@ -1,0 +1,289 @@
+/*  Challenges
+Julia asked her students to create some coding challenges. Write a query to print the hacker_id, name, and the total number of challenges created by each student. Sort your results by the total number of challenges in descending order. If more than one student created the same number of challenges, then sort the result by hacker_id. If more than one student created the same number of challenges and the count is less than the maximum number of challenges created, then exclude those students from the result.
+
+Input Format
+
+The following tables contain challenge data:
+Hackers: The hacker_id is the id of the hacker, and name is the name of the hacker. 
+Challenges: The challenge_id is the id of the challenge, and hacker_id is the id of the student who created the challenge. 
+
+*/
+
+
+select 
+    t1.hacker_id,
+    t2.name,
+    t1.challenges_created
+from (
+    select hacker_id,
+        count(*) as challenges_created
+    from challenges 
+    group by hacker_id
+    having count(*) in (
+            select
+                challenges_created
+            from (
+                select hacker_id,
+                    count(*) as challenges_created
+                from challenges
+                group by hacker_id)
+            group by challenges_created
+            having count(challenges_created) = 1 or 
+                challenges_created = ( select max(count(*))
+                        from challenges
+                        group by hacker_id)
+            )
+    ) t1
+inner join 
+hackers t2
+on t1.hacker_id = t2.hacker_id
+order by t1.challenges_created desc, t1.hacker_id;
+
+
+
+
+-----------------------------------------------------
+
+/*  Contest Leaderboard
+You did such a great job helping Julia with her last coding contest challenge that she wants you to work on this one, too!
+
+The total score of a hacker is the sum of their maximum scores for all of the challenges. Write a query to print the hacker_id, name, and total score of the hackers ordered by the descending score. If more than one hacker achieved the same total score, then sort the result by ascending hacker_id. Exclude all hackers with a total score of  from your result.
+
+Input Format
+
+The following tables contain contest data:
+Hackers: The hacker_id is the id of the hacker, and name is the name of the hacker. 
+
+Submissions: The submission_id is the id of the submission, hacker_id is the id of the hacker who made the submission, challenge_id is the id of the challenge for which the submission belongs to, and score is the score of the submission. 
+
+*/
+
+
+select 
+    t1.hacker_id,
+    t2.name,
+    sum(t1.max_score) as total_score
+from (
+    select 
+        hacker_id,
+        challenge_id,
+        max(score) as max_score
+    from submissions
+    group by challenge_id, hacker_id
+    having max(score) > 0
+    ) t1
+inner join hackers t2
+on t1.hacker_id = t2.hacker_id
+group by t1.hacker_id, t2.name
+order by total_score desc, t1.hacker_id;
+
+
+
+
+-----------------------------------------------------
+
+/* Placements
+You are given three tables: Students, Friends and Packages. Students contains two columns: ID and Name. Friends contains two columns: ID and Friend_ID (ID of the ONLY best friend). Packages contains two columns: ID and Salary (offered salary in $ thousands per month).
+
+Write a query to output the names of those students whose best friends got offered a higher salary than them. Names must be ordered by the salary amount offered to the best friends. It is guaranteed that no two students got same salary offer.
+
+*/
+
+
+
+select 
+    x2.name
+from (
+    select 
+        t1.id,
+        t1.friend_id,
+        t2.salary as salary,
+        t3.salary as friend_salary
+    from friends t1
+    inner join packages t2
+    	on t1.id = t2.id
+    inner join packages t3
+    	on t1.friend_id = t3.id
+    where t3.salary > t2.salary
+    ) x1
+inner join students x2
+on x1.id = x2.id
+order by x1.friend_salary;
+
+
+-----------------------------------------------------
+
+/* The PADS
+Generate the following two result sets:
+
+Query an alphabetically ordered list of all names in OCCUPATIONS, immediately followed by the first letter of each profession as a parenthetical (i.e.: enclosed in parentheses). For example: AnActorName(A), ADoctorName(D), AProfessorName(P), and ASingerName(S).
+Query the number of ocurrences of each occupation in OCCUPATIONS. Sort the occurrences in ascending order, and output them in the following format:
+
+There are a total of [occupation_count] [occupation]s.
+where [occupation_count] is the number of occurrences of an occupation in OCCUPATIONS and [occupation] is the lowercase occupation name. If more than one Occupation has the same [occupation_count], they should be ordered alphabetically.
+
+Note: There will be at least two entries in the table for each type of occupation.
+*/
+
+
+
+select 
+    name||'('||substr(occupation, 0, 1)||')'
+from occupations
+union
+select 
+    'There are a total of '||count(name) over(partition by occupation)||' '||lower(occupation)||'s.'
+from occupations
+
+
+
+-----------------------------------------------------
+
+/*Weather Observation Station 18
+Consider P1(a,b) and P2(c,d) to be two points on a 2D plane.
+
+a - happens to equal the minimum value in Northern Latitude (LAT_N in STATION).
+b - happens to equal the minimum value in Western Longitude (LONG_W in STATION).
+c - happens to equal the maximum value in Northern Latitude (LAT_N in STATION).
+d - happens to equal the maximum value in Western Longitude (LONG_W in STATION).
+Query the Manhattan Distance between points P1 and P2 and round it to a scale of 4 decimal places.
+
+*/
+
+
+select 
+    round(abs(min(lat_n) - max(lat_n)) + abs(min(long_w) - max(long_w)), 4)
+from station
+
+
+
+-----------------------------------------------------
+
+/*  Weather Observation Station 19
+Consider P1(a,b) and P2(c,d) to be two points on a 2D plane where 
+(a, b) are the respective minimum and maximum values of Northern Latitude (LAT_N) and
+(c, d) are the respective minimum and maximum values of Western Longitude (LONG_W) in STATION.
+
+Query the Euclidean Distance between points P1 and P2 and format your answer to display 4 decimal digits.
+
+*/
+
+
+select
+    round(sqrt(pow(min(lat_n) - max(lat_n), 2) + pow(min(long_w) - max(long_w), 2)), 4)
+from station
+
+
+
+-----------------------------------------------------
+
+/*  The Report
+You are given two tables: Students and Grades. Students contains three columns ID, Name and Marks.
+Ketty gives Eve a task to generate a report containing three columns: Name, Grade and Mark. Ketty doesn't want the NAMES of those students who received a grade lower than 8. The report must be in descending order by grade -- i.e. higher grades are entered first. If there is more than one student with the same grade (8-10) assigned to them, order those particular students by their name alphabetically. Finally, if the grade is lower than 8, use "NULL" as their name and list them by their grades in descending order. If there is more than one student with the same grade (1-7) assigned to them, order those particular students by their marks in ascending order.
+
+Write a query to help Eve.
+
+Note:
+Print "NULL"  as the name if the grade is less than 8.
+*/
+
+
+select 
+	(case when t2.Grade >= 8 then t1.Name else NULL end) as Name,
+	t2.Grade,
+	t1.Marks
+from Students t1
+inner join Grades t2
+on t1.Marks between t2.Min_mark and t2.Max_mark
+order by t2.Grade desc, t1.Name
+
+
+
+-----------------------------------------------------
+
+/*  Top Competitors
+Julia just finished conducting a coding contest, and she needs your help assembling the leaderboard! Write a query to print the respective hacker_id and name of hackers who achieved full scores for more than one challenge. Order your output in descending order by the total number of challenges in which the hacker earned a full score. If more than one hacker received full scores in same number of challenges, then sort them by ascending hacker_id.
+
+Input Format
+
+The following tables contain contest data:
+
+Hackers: The hacker_id is the id of the hacker, and name is the name of the hacker. 
+
+Difficulty: The difficult_level is the level of difficulty of the challenge, and score is the score of the challenge for the difficulty level. 
+
+Challenges: The challenge_id is the id of the challenge, the hacker_id is the id of the hacker who created the challenge, and difficulty_level is the level of difficulty of the challenge. 
+
+Submissions: The submission_id is the id of the submission, hacker_id is the id of the hacker who made the submission, challenge_id is the id of the challenge that the submission belongs to, and score is the score of the submission. 
+
+*/
+
+
+select
+    x1.hacker_id,
+    x1.name
+from Hackers x1
+inner join (
+    select 
+        t1.hacker_id,
+        count(t1.score) as cnt
+    from Submissions t1
+    inner join Challenges t2
+    	on t1.challenge_id = t2.challenge_id
+    inner join Difficulty t3
+    	on t2.difficulty_level = t3.difficulty_level
+    where t1.score = t3.score
+    group by t1.hacker_id
+    having count(t1.score) > 1
+    ) x2
+on x1.hacker_id = x2.hacker_id
+order by x2.cnt desc, x1.hacker_id
+
+
+
+-----------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
